@@ -219,11 +219,50 @@ function drawFish() {
   drawSprite(fishObj.x, fishObj.y, fish, { scale, colors: { 1: "#4cf" } });
 }
 
+function drawOldLady(x, y, sprite, options = {}) {
+  const { scale = 3, flip = false } = options;
+
+  // Map of color codes to actual colors
+  const colors = {
+    1: "rgb(0, 0, 0)",
+    2: "rgb(226, 164, 122)",
+    3: "rgb(101, 45, 45)",
+    4: "rgb(37, 26, 40)",
+    5: "rgb(251, 242, 54)",
+    6: "rgb(255, 255, 255)",
+    7: "rgb(120, 114, 102)",
+    8: "rgb(51, 37, 59)",
+    9: "rgb(75, 42, 30)",
+    10: "rgb(52, 29, 22)",
+    11: "rgb(147, 65, 60)",
+    12: "rgb(208, 138, 96)",
+    13: "rgb(68, 64, 63)"
+  };
+
+  for (let row = 0; row < sprite.length; row++) {
+    for (let col = 0; col < sprite[row].length; col++) {
+      const cell = sprite[row][flip ? sprite[row].length - 1 - col : col];
+      if (cell !== 0) {
+        ctx.fillStyle = colors[cell];
+        ctx.fillRect(x + col * scale, y + row * scale, scale, scale);
+      }
+    }
+  }
+}
+
+
+// function drawEnemies() {
+//   enemies.forEach(e => {
+//     if (camX !== e.roomX || camY !== e.roomY) return;
+//     ctx.fillStyle = "#e33";
+//     ctx.fillRect(e.x, e.y, e.size, e.size);
+//   });
+// }
+
 function drawEnemies() {
   enemies.forEach(e => {
     if (camX !== e.roomX || camY !== e.roomY) return;
-    ctx.fillStyle = "#e33";
-    ctx.fillRect(e.x, e.y, e.size, e.size);
+    drawOldLady(e.x, e.y, oldLady, { scale: 2, flip: false });
   });
 }
 
