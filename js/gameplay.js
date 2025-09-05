@@ -1,6 +1,9 @@
 let W = 400, H = 300;
 const scale = 3;
 
+// Density of random walls to make it more Maze like
+const WALL_DENSITY = 0.35;
+
 const stage = document.getElementById("stage");
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -13,9 +16,95 @@ const spriteH = SPRITE_ROWS * scale;
 const fishW = fish[0].length * scale;
 const fishH = fish.length * scale;
 
-let player = { x: 100, y: 75, speed: 6 };
+let player = { x: 100, y: 75, speed: 3 };
 let camX = 0, camY = 0;
 const worldW = 5, worldH = 5;
+
+let walls = null;
+
+function makeEmptyWalls(w, h) {
+  const g = Array.from({ length: w }, () =>
+    Array.from({ length: h }, () => ({ N: true, S: true, E: true, W: true }))
+  );
+  return g;
+}
+function generateWalls() {
+  walls = makeEmptyWalls(worldW, worldH);
+  for (let x = 0; x < worldW; x++) {
+    for (let y = 0; y < worldH; y++) {
+      if (x + 1 < worldW && Math.random() < WALL_DENSITY) {
+        walls[x][y].E = false;
+        walls[x + 1][y].W = false;
+      }
+      if (y + 1 < worldH && Math.random() < WALL_DENSITY) {
+        walls[x][y].S = false;
+        walls[x][y + 1].N = false;
+      }
+    }
+  }
+
+  ensureConnectivity();
+}
+
+function neighborsOpen(x, y) {
+  const n = [];
+  if (y > 0 && walls[x][y].N) n.push({ x, y: y - 1 });
+  if (y + 1 < worldH && walls[x][y].S) n.push({ x, y: y + 1 });
+  if (x + 1 < worldW && walls[x][y].E) n.push({ x: x + 1, y });
+  if (x > 0 && walls[x][y].W) n.push({ x: x - 1, y });
+  return n;
+}
+
+function bfsVisited(startX = 0, startY = 0) {
+  const vis = Array.from({ length: worldW }, () => Array(worldH).fill(false));
+  const q = [{ x: startX, y: startY }];
+  vis[startX][startY] = true;
+  while (q.length) {
+    const { x, y } = q.shift();
+    for (const nb of neighborsOpen(x, y)) {
+      if (!vis[nb.x][nb.y]) {
+        vis[nb.x][nb.y] = true;
+        q.push(nb);
+      }
+    }
+  }
+  return vis;
+}
+
+function ensureConnectivity() {
+  while (true) {
+    const vis = bfsVisited(0, 0);
+    let all = true;
+    for (let x = 0; x < worldW; x++) {
+      for (let y = 0; y < worldH; y++) {
+        if (!vis[x][y]) { all = false; break; }
+      }
+      if (!all) break;
+    }
+    if (all) return;
+
+    let opened = false;
+    for (let x = 0; x < worldW && !opened; x++) {
+      for (let y = 0; y < worldH && !opened; y++) {
+        if (!vis[x][y]) continue;
+        if (x + 1 < worldW && !walls[x][y].E && !vis[x + 1][y]) {
+          walls[x][y].E = true; walls[x + 1][y].W = true; opened = true; break;
+        }
+        if (y + 1 < worldH && !walls[x][y].S && !vis[x][y + 1]) {
+          walls[x][y].S = true; walls[x][y + 1].N = true; opened = true; break;
+        }
+        if (x > 0 && !walls[x][y].W && !vis[x - 1][y]) {
+          walls[x][y].W = true; walls[x - 1][y].E = true; opened = true; break;
+        }
+        if (y > 0 && !walls[x][y].N && !vis[x][y - 1]) {
+          walls[x][y].N = true; walls[x][y - 1].S = true; opened = true; break;
+        }
+      }
+    }
+    if (!opened) return;
+  }
+}
+
 
 const fishObj = {
   roomX: Math.floor(Math.random() * worldW),
@@ -138,6 +227,18 @@ function drawEnemies() {
   });
 }
 
+function drawRoomWalls() {
+  const w = walls[camX][camY];
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = "rgba(255, 0, 0, 0.6)";
+  ctx.beginPath();
+  if (!w.N) { ctx.moveTo(0, 0); ctx.lineTo(W, 0); }
+  if (!w.S) { ctx.moveTo(0, H); ctx.lineTo(W, H); }
+  if (!w.W) { ctx.moveTo(0, 0); ctx.lineTo(0, H); }
+  if (!w.E) { ctx.moveTo(W, 0); ctx.lineTo(W, H); }
+  ctx.stroke();
+}
+
 function drawExit() {
   if (!exitRoom) return;
   if (camX === exitRoom.x && camY === exitRoom.y) {
@@ -204,10 +305,38 @@ function update() {
 
   let camChanged = false;
 
-  if (player.x < 0) { if (camX > 0) { camX--; player.x += W; camChanged = true; } else { player.x = 0; } }
-  if (player.x + spriteW > W) { if (camX < worldW - 1) { camX++; player.x -= W; camChanged = true; } else { player.x = W - spriteW; } }
-  if (player.y < 0) { if (camY > 0) { camY--; player.y += H; camChanged = true; } else { player.y = 0; } }
-  if (player.y + spriteH > H) { if (camY < worldH - 1) { camY++; player.y -= H; camChanged = true; } else { player.y = H - spriteH; } }
+
+  if (player.x < 0) {
+    if (camX > 0 && walls[camX][camY].W) {
+      camX--; player.x += W; camChanged = true;
+    } else {
+      player.x = 0;
+    }
+  }
+
+  if (player.x + spriteW > W) {
+    if (camX < worldW - 1 && walls[camX][camY].E) {
+      camX++; player.x -= W; camChanged = true;
+    } else {
+      player.x = W - spriteW;
+    }
+  }
+
+  if (player.y < 0) {
+    if (camY > 0 && walls[camX][camY].N) {
+      camY--; player.y += H; camChanged = true;
+    } else {
+      player.y = 0;
+    }
+  }
+
+  if (player.y + spriteH > H) {
+    if (camY < worldH - 1 && walls[camX][camY].S) {
+      camY++; player.y -= H; camChanged = true;
+    } else {
+      player.y = H - spriteH;
+    }
+  }
 
   if (camChanged) updateStagePos();
 
@@ -254,13 +383,16 @@ function update() {
     player.x = Math.floor((W - spriteW) / 2);
     player.y = Math.floor((H - spriteH) / 2);
     updateStagePos();
+
     fishObj.collected = false;
     fishObj.roomX = Math.floor(Math.random() * worldW);
     fishObj.roomY = Math.floor(Math.random() * worldH);
     fishObj.x = 50 + Math.random() * (W - 100);
     fishObj.y = 50 + Math.random() * (H - 100);
     exitRoom = null;
+
     enemies.push(createEnemy());
+    generateWalls();
   }
 }
 
@@ -293,6 +425,7 @@ function draw() {
   drawFish();
   drawEnemies();
   drawExit();
+  drawRoomWalls();
   drawCat(player.x, player.y, catFrames[currentFrame], direction);
 
   if (hitFlash > 0) {
@@ -318,5 +451,6 @@ function loop() {
 function startGameLoop() {
   resizeCanvas();
   updateStagePos();
+  generateWalls();
   loop();
 }
