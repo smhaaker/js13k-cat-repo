@@ -2,7 +2,7 @@ let W = 400, H = 300;
 const scale = 3;
 
 // Density of random walls to make it more Maze like
-const WALL_DENSITY = 0.35;
+const WALL_DENSITY = 0.45;
 
 const stage = document.getElementById("stage");
 const canvas = document.getElementById("game");
@@ -19,6 +19,7 @@ const fishH = fish.length * scale;
 let player = { x: 100, y: 75, speed: 3 };
 let camX = 0, camY = 0;
 const worldW = 5, worldH = 5;
+
 
 let walls = null;
 
@@ -198,6 +199,7 @@ function pickExitRoom() {
 
 function drawSprite(x, y, sprite, options = {}) {
   const { scale = 3, flip = false, colors = {} } = options;
+
   for (let row = 0; row < sprite.length; row++) {
     for (let col = 0; col < sprite[row].length; col++) {
       const cell = sprite[row][flip ? sprite[row].length - 1 - col : col];
@@ -250,14 +252,6 @@ function drawOldLady(x, y, sprite, options = {}) {
   }
 }
 
-
-// function drawEnemies() {
-//   enemies.forEach(e => {
-//     if (camX !== e.roomX || camY !== e.roomY) return;
-//     ctx.fillStyle = "#e33";
-//     ctx.fillRect(e.x, e.y, e.size, e.size);
-//   });
-// }
 
 function drawEnemies() {
   enemies.forEach(e => {
@@ -397,6 +391,7 @@ function update() {
   if (enemyCaughtPlayer()) {
     hitFlash = 18;
     playBeep(900, 0.08, "square");
+    document.getElementById("restart").disabled = false;
     player.x = Math.max(0, Math.min(W - spriteW, (W - spriteW) * 0.5));
     player.y = Math.max(0, Math.min(H - spriteH, (H - spriteH) * 0.5));
   }
@@ -417,22 +412,29 @@ function update() {
   }
 
   if (checkWin()) {
-    wins++;
-    camX = 0; camY = 0;
-    player.x = Math.floor((W - spriteW) / 2);
-    player.y = Math.floor((H - spriteH) / 2);
-    updateStagePos();
-
-    fishObj.collected = false;
-    fishObj.roomX = Math.floor(Math.random() * worldW);
-    fishObj.roomY = Math.floor(Math.random() * worldH);
-    fishObj.x = 50 + Math.random() * (W - 100);
-    fishObj.y = 50 + Math.random() * (H - 100);
-    exitRoom = null;
-
-    enemies.push(createEnemy());
-    generateWalls();
+    document.getElementById("next-level").disabled = false;
+    document.getElementById("next-level").addEventListener("click", startNextLevel);
   }
+}
+
+function startNextLevel() {
+  wins++;
+  camX = 0; camY = 0;
+  player.x = Math.floor((W - spriteW) / 2);
+  player.y = Math.floor((H - spriteH) / 2);
+  updateStagePos();
+
+  fishObj.collected = false;
+  fishObj.roomX = Math.floor(Math.random() * worldW);
+  fishObj.roomY = Math.floor(Math.random() * worldH);
+  fishObj.x = 50 + Math.random() * (W - 100);
+  fishObj.y = 50 + Math.random() * (H - 100);
+  exitRoom = null;
+
+  enemies.push(createEnemy());
+  generateWalls();
+  
+  document.getElementById("next-level").disabled = true;
 }
 
 function checkWin() {
@@ -466,6 +468,7 @@ function draw() {
   drawExit();
   drawRoomWalls();
   drawCat(player.x, player.y, catFrames[currentFrame], direction);
+
 
   if (hitFlash > 0) {
     hitFlash--;

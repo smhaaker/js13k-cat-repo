@@ -1,15 +1,31 @@
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let audioUnlocked = false;
+let audioEnabled = true;
+
+const audioBtn = document.getElementById("audio-toggle");
 
 function unlockAudio() {
   if (!audioUnlocked) {
-    audioCtx.resume();
-    audioUnlocked = true;
+    audioCtx.resume().then(() => {
+      audioUnlocked = true;
+      console.log("Audio unlocked!");
+    });
   }
 }
 
+// Audio button click
+audioBtn.addEventListener("click", () => {
+  audioEnabled = !audioEnabled;
+  audioBtn.textContent = audioEnabled ? "🔊" : "🔇";
+
+  if (audioEnabled) {
+    unlockAudio();
+  }
+});
+
 function meowSound() {
-  if (!audioUnlocked) return;
+  if (!audioUnlocked || !audioEnabled) return;
+
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.type = "sine";
@@ -28,21 +44,23 @@ function meowSound() {
 }
 
 function playBeep(freq = 440, duration = 0.05, type = "square") {
-  if (!audioUnlocked) return;
-  const oscillator = audioCtx.createOscillator();
-  const gainNode = audioCtx.createGain();
+  if (!audioUnlocked || !audioEnabled) return;
 
-  oscillator.type = type;
-  oscillator.frequency.value = freq;
-  oscillator.connect(gainNode);
-  gainNode.connect(audioCtx.destination);
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
 
-  gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
 
-  oscillator.start();
-  oscillator.stop(audioCtx.currentTime + duration);
+  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
 }
 
+// Automatically unlock audio on first user interaction
 window.addEventListener("keydown", unlockAudio, { once: true });
 window.addEventListener("mousedown", unlockAudio, { once: true });
