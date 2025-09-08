@@ -2,11 +2,6 @@ startGameLoop();
 
 
 // UI handling 
-document.getElementById("pause").addEventListener("click", () => {
-  gamePaused = !gamePaused;
-  console.log("Paused:", gamePaused);
-});
-
 function showGameOver(message = "Game Over", showNextLevel = false, showRestart = true) {
     const modal = document.getElementById("game-over-modal");
     const textEl = document.getElementById("modal-text");

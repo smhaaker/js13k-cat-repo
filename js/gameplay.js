@@ -106,9 +106,6 @@ function ensureConnectivity() {
   }
 }
 
-
-
-
 const fishObj = {
   roomX: Math.floor(Math.random() * worldW),
   roomY: Math.floor(Math.random() * worldH),
@@ -494,7 +491,6 @@ function draw() {
   drawExit();
   drawRoomWalls();
   drawCat(player.x, player.y, catFrames[currentFrame], direction);
-
 
   if (hitFlash > 0) {
     hitFlash--;
