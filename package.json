@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "archiver": "^7.0.1",
     "esbuild": "^0.25.9",
     "terser": "^5.44.0"
   }

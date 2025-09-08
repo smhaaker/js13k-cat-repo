@@ -2,10 +2,10 @@ const esbuild = require('esbuild');
 const fs = require('fs');
 const path = require('path');
 const terser = require('terser');
+const archiver = require('archiver');
 
 if (!fs.existsSync('dist')) fs.mkdirSync('dist');
 if (!fs.existsSync(path.join('dist', 'css'))) fs.mkdirSync(path.join('dist', 'css'), { recursive: true });
-
 
 const jsFiles = [
   'js/sound.js',
@@ -26,7 +26,6 @@ const esbuildResult = esbuild.buildSync({
 });
 
 let jsCode = esbuildResult.outputFiles[0].text;
-
 
 (async () => {
   const terserResult = await terser.minify(jsCode, {
@@ -53,22 +52,32 @@ let jsCode = esbuildResult.outputFiles[0].text;
   css = css.replace(/\s+/g, ' ').trim();
   fs.writeFileSync('dist/css/style.css', css);
 
-let html = fs.readFileSync('index.html', 'utf8');
+  let html = fs.readFileSync('index.html', 'utf8');
+  html = html.replace(/<script\s+src=".*?\.js"><\/script>/gs, '');
+  html = html.replace(
+    /<link rel="stylesheet" href="css\/style.css">/,
+    '<link rel="stylesheet" href="css/style.css">'
+  );
+  html = html.replace(/\s+/g, ' ').trim();
+  html = html.replace(
+    '</body>',
+    '  <script src="bundle.js"></script>\n</body>'
+  );
+  fs.writeFileSync('dist/index.html', html);
 
-html = html.replace(/<script\s+src=".*?\.js"><\/script>/gs, '');
+  // === Zip the dist folder ===
+  const output = fs.createWriteStream('game.zip');
+  const archive = archiver('zip', { zlib: { level: 9 } });
 
-html = html.replace(
-  /<link rel="stylesheet" href="css\/style.css">/,
-  '<link rel="stylesheet" href="css/style.css">'
-);
+  output.on('close', () => {
+    console.log(`📦 Zip created: game.zip (${archive.pointer()} total bytes)`);
+  });
 
-html = html.replace(/\s+/g, ' ').trim();
+  archive.on('error', err => { throw err; });
 
-html = html.replace(
-  '</body>',
-  '  <script src="bundle.js"></script>\n</body>'
-);
+  archive.pipe(output);
+  archive.directory('dist/', false); // include all contents of dist
+  await archive.finalize();
 
-fs.writeFileSync('dist/index.html', html);
-  console.log('🚀 Build complete! Dist folder is fully optimized.');
+  console.log('🚀 Build complete! Dist folder is fully optimized and zipped.');
 })();
