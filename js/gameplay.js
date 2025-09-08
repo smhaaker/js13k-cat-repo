@@ -16,11 +16,11 @@ const spriteH = SPRITE_ROWS * scale;
 const fishW = fish[0].length * scale;
 const fishH = fish.length * scale;
 
-let player = { x: 100, y: 75, speed: 3 };
+let player = { x: 100, y: 75, speed: 5 };
 let camX = 0, camY = 0;
 const worldW = 5, worldH = 5;
 
-
+let gamePaused = false;
 let walls = null;
 
 function makeEmptyWalls(w, h) {
@@ -105,6 +105,8 @@ function ensureConnectivity() {
     if (!opened) return;
   }
 }
+
+
 
 
 const fishObj = {
@@ -392,6 +394,14 @@ function update() {
     hitFlash = 18;
     playBeep(900, 0.08, "square");
     document.getElementById("restart").disabled = false;
+
+    setTimeout(() => {
+      document.getElementById("game-over-modal").style.display = "flex";
+    }, 1000);
+    showGameOver("You were caught!", false, true); // only restart
+
+    gamePaused = true; // use a global flag
+
     player.x = Math.max(0, Math.min(W - spriteW, (W - spriteW) * 0.5));
     player.y = Math.max(0, Math.min(H - spriteH, (H - spriteH) * 0.5));
   }
@@ -412,14 +422,18 @@ function update() {
   }
 
   if (checkWin()) {
+    showGameOver("Next level!", true, false);
     document.getElementById("next-level").disabled = false;
     document.getElementById("next-level").addEventListener("click", startNextLevel);
   }
 }
 
-function startNextLevel() {
-  wins++;
-  camX = 0; camY = 0;
+function startNextLevel({ resetWins = false, sameLevel = false } = {}) {
+  if (resetWins) wins = 0;
+  if (!sameLevel) wins++;
+
+  camX = 0;
+  camY = 0;
   player.x = Math.floor((W - spriteW) / 2);
   player.y = Math.floor((H - spriteH) / 2);
   updateStagePos();
@@ -429,12 +443,24 @@ function startNextLevel() {
   fishObj.roomY = Math.floor(Math.random() * worldH);
   fishObj.x = 50 + Math.random() * (W - 100);
   fishObj.y = 50 + Math.random() * (H - 100);
+
   exitRoom = null;
 
-  enemies.push(createEnemy());
+  if (!sameLevel) {
+    enemies.push(createEnemy());
+  } else {
+    enemies.length = 0; 
+    enemies.push(createEnemy());
+  }
+
   generateWalls();
-  
+
+  gamePaused = false;
+  hitFlash = 0;
+  getOutTimer = 0;
+
   document.getElementById("next-level").disabled = true;
+  document.getElementById("game-over-modal").style.display = "none";
 }
 
 function checkWin() {
@@ -485,7 +511,7 @@ function draw() {
 }
 
 function loop() {
-  update();
+  if (!gamePaused) update();
   draw();
   requestAnimationFrame(loop);
 }

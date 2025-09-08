@@ -9,8 +9,16 @@
   <div id="stage">
     <canvas id="game"></canvas>
   </div>
+  <div id="game-over-modal">
+    <div id="game-over-content">
+      <h1>Game Over</h1>
+      <p id="modal-text">text-go-here</p>
+      <button id="restart">Restart</button>
+      <button id="next-level" disabled>Next Level</button>
+    </div>
+  </div>
   <footer>
-    Arrow keys • Walls are red • Exit is yellow • Find fish • Eat fish • Escape <button id="next-level" disabled>Next Level</button> <button id="restart" disabled>Restart</button> <button id="audio-toggle">🔊</button>
+    Arrow keys • Walls are red • Exit is yellow • Find fish • Eat fish • Escape <button id="audio-toggle">🔊</button>
   </footer>
   <script src="./js/sound.js"></script>
   <script src="./js/sprites.js"></script>
