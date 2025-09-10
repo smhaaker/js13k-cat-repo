@@ -81,7 +81,8 @@ function draw() {
 
   ctx.fillStyle = "#ddd";
   ctx.font = "12px monospace";
-  ctx.fillText(`Room: ${camX},${camY} • Enemies: ${enemies.length} • Fish: ${fishObj.collected ? "✓" : "✗"} • Wins: ${wins}`, 10, 16);
+//   ctx.fillText(`Room: ${camX},${camY} • Enemies: ${enemies.length} • Fish: ${fishObj.collected ? "✓" : "✗"} • Level: ${level}`, 10, 16);
+  ctx.fillText(`Fish: ${fishObj.collected ? "✓" : "✗"} • Level: ${level}`, 10, 16);
 
   drawFish();
   drawEnemies();

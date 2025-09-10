@@ -4,7 +4,7 @@ let W = 400, H = 300,
     walls = null,
     currentFrame = 0, frameTimer = 0,
     hitFlash = 0, direction = false,
-    wins = 0, getOutTimer = 0;
+    level = 1, getOutTimer = 0;
 
 const scale = 3,
       WALL_DENSITY = 0.45,
@@ -15,7 +15,7 @@ const stage = document.getElementById("stage"),
       canvas = document.getElementById("game"),
       ctx = canvas.getContext("2d");
 
-let player = { x: 100, y: 75, speed: 5 };
+let player = { x: 100, y: 75, speed: 4 };
 
 let enemySetting = {
     roomX: 0, roomY: 0,
@@ -24,7 +24,6 @@ let enemySetting = {
     vx: 0, vy: 0,
     wanderTimer: 0,
     wanderSpeed: 0.5,
-    chaseSpeed: 1.2,
+    chaseSpeed: 1.4,
     sight: 140
 };
-

@@ -1,10 +1,22 @@
-const fishObj = {
-  roomX: Math.floor(Math.random() * worldW),
-  roomY: Math.floor(Math.random() * worldH),
-  x: 50 + Math.random() * (W - 100),
-  y: 50 + Math.random() * (H - 100),
-  collected: false
-};
+const fishObj = {};
+resetFish();
+
+function resetFish() {
+  fishObj.collected = false;
+  fishObj.roomX = Math.floor(Math.random() * worldW);
+  fishObj.roomY = Math.floor(Math.random() * worldH);
+
+  if (fishObj.roomX === 0 && fishObj.roomY === 0) {
+    if (fishObj.roomX < worldW - 1) fishObj.roomX++;
+    else fishObj.roomY++;
+  }
+
+  fishObj.x = Math.floor((W - fishW) / 2);
+  fishObj.y = Math.floor((H - fishH) / 2);
+  // fishObj.x = 50 + Math.random() * (W - 100);
+  // fishObj.y = 50 + Math.random() * (H - 100);
+}
+
 
 const enemies = [];
 
@@ -178,12 +190,9 @@ function update() {
   if (enemyCaughtPlayer()) {
     hitFlash = 18;
     playBeep(900, 0.08, "square");
-    document.getElementById("restart").disabled = false;
 
-    setTimeout(() => {
-      document.getElementById("modal").style.display = "flex";
-    }, 1000);
     showGameOver("You were caught!", false, true);
+    restartBtn.disabled = false;
 
     gamePaused = true;
 
@@ -208,32 +217,25 @@ function update() {
 
   if (checkWin()) {
     showGameOver("Next level!", true, false);
-    document.getElementById("next-level").disabled = false;
-    document.getElementById("next-level").addEventListener("click", startNextLevel);
+    nextLevelBtn.disabled = false;
   }
 }
 
-function startNextLevel({ resetWins = false, sameLevel = false } = {}) {
-  if (resetWins) wins = 0;
-  if (!sameLevel) wins++;
-
+function startNextLevel({ sameLevel = false } = {}) {
   camX = 0;
   camY = 0;
   player.x = Math.floor((W - spriteW) / 2);
   player.y = Math.floor((H - spriteH) / 2);
   updateStagePos();
-
-  fishObj.collected = false;
-  fishObj.roomX = Math.floor(Math.random() * worldW);
-  fishObj.roomY = Math.floor(Math.random() * worldH);
-  fishObj.x = 50 + Math.random() * (W - 100);
-  fishObj.y = 50 + Math.random() * (H - 100);
+  resetFish();
 
   exitRoom = null;
 
   if (!sameLevel) {
+    level++;
     enemies.push(createEnemy());
   } else {
+    level = 1;
     enemies.length = 0; 
     enemies.push(createEnemy());
   }
@@ -243,6 +245,7 @@ function startNextLevel({ resetWins = false, sameLevel = false } = {}) {
   document.getElementById("next-level").disabled = true;
   document.getElementById("modal").style.display = "none";
 }
+
 function checkWin() {
   if (!exitRoom || !fishObj.collected) return false;
   if (camX !== exitRoom.x || camY !== exitRoom.y) return false;
