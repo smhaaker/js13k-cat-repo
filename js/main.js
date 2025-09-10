@@ -1,10 +1,9 @@
 startGameLoop();
 
-
-// UI handling 
 function showGameOver(message = "Game Over", showNextLevel = false, showRestart = true) {
-    const modal = document.getElementById("game-over-modal");
-    const textEl = document.getElementById("modal-text");
+    const modal = document.getElementById("modal");
+    
+    const textEl = document.getElementById("mtext");
     const nextBtn = document.getElementById("next-level");
     const restartBtn = document.getElementById("restart");
   
@@ -17,11 +16,12 @@ function showGameOver(message = "Game Over", showNextLevel = false, showRestart 
   }
 
 document.getElementById("restart").addEventListener("click", () => {
-  document.getElementById("game-over-modal").style.display = "none";
+  document.getElementById("modal").style.display = "none";
   startNextLevel({ sameLevel: true });
+  gamePaused = false;
 });
 
 document.getElementById("next-level").addEventListener("click", () => {
-    document.getElementById("game-over-modal").style.display = "none";
+    document.getElementById("modal").style.display = "none";
     startNextLevel({ sameLevel: false });
   });

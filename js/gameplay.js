@@ -1,111 +1,3 @@
-let W = 400, H = 300;
-const scale = 3;
-
-// Density of random walls to make it more Maze like
-const WALL_DENSITY = 0.45;
-
-const stage = document.getElementById("stage");
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-
-const SPRITE_COLS = catFrames[0][0].length;
-const SPRITE_ROWS = catFrames[0].length;
-const spriteW = SPRITE_COLS * scale;
-const spriteH = SPRITE_ROWS * scale;
-
-const fishW = fish[0].length * scale;
-const fishH = fish.length * scale;
-
-let player = { x: 100, y: 75, speed: 5 };
-let camX = 0, camY = 0;
-const worldW = 5, worldH = 5;
-
-let gamePaused = false;
-let walls = null;
-
-function makeEmptyWalls(w, h) {
-  const g = Array.from({ length: w }, () =>
-    Array.from({ length: h }, () => ({ N: true, S: true, E: true, W: true }))
-  );
-  return g;
-}
-function generateWalls() {
-  walls = makeEmptyWalls(worldW, worldH);
-  for (let x = 0; x < worldW; x++) {
-    for (let y = 0; y < worldH; y++) {
-      if (x + 1 < worldW && Math.random() < WALL_DENSITY) {
-        walls[x][y].E = false;
-        walls[x + 1][y].W = false;
-      }
-      if (y + 1 < worldH && Math.random() < WALL_DENSITY) {
-        walls[x][y].S = false;
-        walls[x][y + 1].N = false;
-      }
-    }
-  }
-
-  ensureConnectivity();
-}
-
-function neighborsOpen(x, y) {
-  const n = [];
-  if (y > 0 && walls[x][y].N) n.push({ x, y: y - 1 });
-  if (y + 1 < worldH && walls[x][y].S) n.push({ x, y: y + 1 });
-  if (x + 1 < worldW && walls[x][y].E) n.push({ x: x + 1, y });
-  if (x > 0 && walls[x][y].W) n.push({ x: x - 1, y });
-  return n;
-}
-
-function bfsVisited(startX = 0, startY = 0) {
-  const vis = Array.from({ length: worldW }, () => Array(worldH).fill(false));
-  const q = [{ x: startX, y: startY }];
-  vis[startX][startY] = true;
-  while (q.length) {
-    const { x, y } = q.shift();
-    for (const nb of neighborsOpen(x, y)) {
-      if (!vis[nb.x][nb.y]) {
-        vis[nb.x][nb.y] = true;
-        q.push(nb);
-      }
-    }
-  }
-  return vis;
-}
-
-function ensureConnectivity() {
-  while (true) {
-    const vis = bfsVisited(0, 0);
-    let all = true;
-    for (let x = 0; x < worldW; x++) {
-      for (let y = 0; y < worldH; y++) {
-        if (!vis[x][y]) { all = false; break; }
-      }
-      if (!all) break;
-    }
-    if (all) return;
-
-    let opened = false;
-    for (let x = 0; x < worldW && !opened; x++) {
-      for (let y = 0; y < worldH && !opened; y++) {
-        if (!vis[x][y]) continue;
-        if (x + 1 < worldW && !walls[x][y].E && !vis[x + 1][y]) {
-          walls[x][y].E = true; walls[x + 1][y].W = true; opened = true; break;
-        }
-        if (y + 1 < worldH && !walls[x][y].S && !vis[x][y + 1]) {
-          walls[x][y].S = true; walls[x][y + 1].N = true; opened = true; break;
-        }
-        if (x > 0 && !walls[x][y].W && !vis[x - 1][y]) {
-          walls[x][y].W = true; walls[x - 1][y].E = true; opened = true; break;
-        }
-        if (y > 0 && !walls[x][y].N && !vis[x][y - 1]) {
-          walls[x][y].N = true; walls[x][y - 1].S = true; opened = true; break;
-        }
-      }
-    }
-    if (!opened) return;
-  }
-}
-
 const fishObj = {
   roomX: Math.floor(Math.random() * worldW),
   roomY: Math.floor(Math.random() * worldH),
@@ -117,16 +9,7 @@ const fishObj = {
 const enemies = [];
 
 function createEnemy() {
-  const enemy = {
-    roomX: 0, roomY: 0,
-    x: 0, y: 0,
-    size: 14,
-    vx: 0, vy: 0,
-    wanderTimer: 0,
-    wanderSpeed: 0.5,
-    chaseSpeed: 1.2,
-    sight: 140
-  };
+  const enemy = {...enemySetting};
   do {
     enemy.roomX = Math.floor(Math.random() * worldW);
     enemy.roomY = Math.floor(Math.random() * worldH);
@@ -138,18 +21,9 @@ function createEnemy() {
 
 enemies.push(createEnemy());
 
-let currentFrame = 0, frameTimer = 0;
-const frameSpeed = 15;
-let hitFlash = 0;
-let direction = false;
-const gravity = 0;
-
 const keys = {};
 addEventListener("keydown", e => keys[e.key] = true);
 addEventListener("keyup", e => keys[e.key] = false);
-
-let wins = 0;
-let getOutTimer = 0;
 
 function resizeCanvas() {
   W = Math.floor(window.innerWidth / 5);
@@ -194,90 +68,6 @@ function pickExitRoom() {
     }
   }
   exitRoom = edgeRooms[(Math.random() * edgeRooms.length) | 0];
-}
-
-function drawSprite(x, y, sprite, options = {}) {
-  const { scale = 3, flip = false, colors = {} } = options;
-
-  for (let row = 0; row < sprite.length; row++) {
-    for (let col = 0; col < sprite[row].length; col++) {
-      const cell = sprite[row][flip ? sprite[row].length - 1 - col : col];
-      if (cell !== 0 && colors[cell]) {
-        ctx.fillStyle = colors[cell];
-        ctx.fillRect(x + col * scale, y + row * scale, scale, scale);
-      }
-    }
-  }
-}
-
-function drawCat(x, y, frame, flip = false) {
-  drawSprite(x, y, frame, { scale, flip, colors: { 1: "#000", 2: "#FF0000" } });
-}
-
-function drawFish() {
-  if (fishObj.collected) return;
-  if (camX !== fishObj.roomX || camY !== fishObj.roomY) return;
-  drawSprite(fishObj.x, fishObj.y, fish, { scale, colors: { 1: "#4cf" } });
-}
-
-function drawOldLady(x, y, sprite, options = {}) {
-  const { scale = 3, flip = false } = options;
-
-  // Map of color codes to actual colors
-  const colors = {
-    1: "rgb(0, 0, 0)",
-    2: "rgb(226, 164, 122)",
-    3: "rgb(101, 45, 45)",
-    4: "rgb(37, 26, 40)",
-    5: "rgb(251, 242, 54)",
-    6: "rgb(255, 255, 255)",
-    7: "rgb(120, 114, 102)",
-    8: "rgb(51, 37, 59)",
-    9: "rgb(75, 42, 30)",
-    10: "rgb(52, 29, 22)",
-    11: "rgb(147, 65, 60)",
-    12: "rgb(208, 138, 96)",
-    13: "rgb(68, 64, 63)"
-  };
-
-  for (let row = 0; row < sprite.length; row++) {
-    for (let col = 0; col < sprite[row].length; col++) {
-      const cell = sprite[row][flip ? sprite[row].length - 1 - col : col];
-      if (cell !== 0) {
-        ctx.fillStyle = colors[cell];
-        ctx.fillRect(x + col * scale, y + row * scale, scale, scale);
-      }
-    }
-  }
-}
-
-
-function drawEnemies() {
-  enemies.forEach(e => {
-    if (camX !== e.roomX || camY !== e.roomY) return;
-    drawOldLady(e.x, e.y, oldLady, { scale: 2, flip: false });
-  });
-}
-
-function drawRoomWalls() {
-  const w = walls[camX][camY];
-  ctx.lineWidth = 8;
-  ctx.strokeStyle = "rgba(255, 0, 0, 0.6)";
-  ctx.beginPath();
-  if (!w.N) { ctx.moveTo(0, 0); ctx.lineTo(W, 0); }
-  if (!w.S) { ctx.moveTo(0, H); ctx.lineTo(W, H); }
-  if (!w.W) { ctx.moveTo(0, 0); ctx.lineTo(0, H); }
-  if (!w.E) { ctx.moveTo(W, 0); ctx.lineTo(W, H); }
-  ctx.stroke();
-}
-
-function drawExit() {
-  if (!exitRoom) return;
-  if (camX === exitRoom.x && camY === exitRoom.y) {
-    ctx.strokeStyle = "yellow";
-    ctx.lineWidth = 6;
-    ctx.strokeRect(0, 0, W, H);
-  }
 }
 
 function updateEnemy(e) {
@@ -383,8 +173,6 @@ function update() {
     currentFrame = 0;
   }
 
-  player.y += gravity;
-
   enemies.forEach(updateEnemy);
 
   if (enemyCaughtPlayer()) {
@@ -393,11 +181,11 @@ function update() {
     document.getElementById("restart").disabled = false;
 
     setTimeout(() => {
-      document.getElementById("game-over-modal").style.display = "flex";
+      document.getElementById("modal").style.display = "flex";
     }, 1000);
-    showGameOver("You were caught!", false, true); // only restart
+    showGameOver("You were caught!", false, true);
 
-    gamePaused = true; // use a global flag
+    gamePaused = true;
 
     player.x = Math.max(0, Math.min(W - spriteW, (W - spriteW) * 0.5));
     player.y = Math.max(0, Math.min(H - spriteH, (H - spriteH) * 0.5));
@@ -452,58 +240,17 @@ function startNextLevel({ resetWins = false, sameLevel = false } = {}) {
 
   generateWalls();
 
-  gamePaused = false;
-  hitFlash = 0;
-  getOutTimer = 0;
-
   document.getElementById("next-level").disabled = true;
-  document.getElementById("game-over-modal").style.display = "none";
+  document.getElementById("modal").style.display = "none";
 }
-
 function checkWin() {
   if (!exitRoom || !fishObj.collected) return false;
   if (camX !== exitRoom.x || camY !== exitRoom.y) return false;
-
   if (exitRoom.x === 0 && player.x <= 0) return true;
   if (exitRoom.x === worldW - 1 && player.x + spriteW >= W) return true;
   if (exitRoom.y === 0 && player.y <= 0) return true;
   if (exitRoom.y === worldH - 1 && player.y + spriteH >= H) return true;
-
   return false;
-}
-
-function draw() {
-  ctx.clearRect(0, 0, W, H);
-
-  const hue = (camX + camY * worldW) * 40;
-  ctx.fillStyle = `hsl(${hue}, 50%, 20%)`;
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.fillStyle = "#ddd";
-  ctx.font = "12px monospace";
-  ctx.fillText(
-    `Room: ${camX},${camY} • Enemies: ${enemies.length} • Fish: ${fishObj.collected ? "✓" : "✗"} • Wins: ${wins}`,
-    10, 16
-  );
-
-  drawFish();
-  drawEnemies();
-  drawExit();
-  drawRoomWalls();
-  drawCat(player.x, player.y, catFrames[currentFrame], direction);
-
-  if (hitFlash > 0) {
-    hitFlash--;
-    ctx.fillStyle = "rgba(255,0,0,0.25)";
-    ctx.fillRect(0, 0, W, H);
-  }
-
-  if (getOutTimer > 0) {
-    getOutTimer--;
-    ctx.fillStyle = "yellow";
-    ctx.font = "24px monospace";
-    ctx.fillText("GET OUT!", W / 2 - 50, H / 2);
-  }
 }
 
 function loop() {

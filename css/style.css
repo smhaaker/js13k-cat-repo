@@ -1,10 +1,10 @@
 body {
   margin: 0;
   background: #000;
-  height: 100vh;
+  /* height: 100vh; */
   overflow: hidden;
   font-family: monospace;
-  color: #ccc;
+  /* color: #ccc; */
 }
 
 #stage {
@@ -17,7 +17,7 @@ body {
 canvas {
   display: block;
   background: #111;
-  border: 2px solid #333;
+  /* border: 2px solid #333; */
   image-rendering: pixelated;
 }
 
@@ -40,9 +40,9 @@ button {
   border-radius: 8px;
   color: white;
   padding: 15px 32px;
-  display: inline-block;
+  /* display: inline-block; */
   font-size: 16px;
-  transition: all 0.2s ease;
+  /* transition: all 0.2s ease; */
   opacity: 0.85;
 }
 
@@ -61,7 +61,7 @@ button:active {
   transform: scale(0.95);
 }
 
-#game-over-modal {
+#modal {
   display: none;
   position: fixed;
   top: 0;
@@ -87,19 +87,4 @@ button:active {
 #game-over-content h1 {
   margin: 0 0 15px;
   font-size: 24px;
-}
-
-#game-over-content button {
-  margin-top: 10px;
-  padding: 10px 20px;
-  background: #222;
-  border: none;
-  border-radius: 6px;
-  color: #ccc;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-#game-over-content button:hover {
-  background: #444;
 }
