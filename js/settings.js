@@ -15,13 +15,6 @@ const stage = document.getElementById("stage"),
       canvas = document.getElementById("game"),
       ctx = canvas.getContext("2d");
 
-      // move to render js 
-const spriteW = catFrames[0][0].length * scale,
-      spriteH = catFrames[0].length * scale;
-      // move to render js 
-const fishW = fish[0].length * scale,
-      fishH = fish.length * scale;
-
 let player = { x: 100, y: 75, speed: 5 };
 
 let enemySetting = {
@@ -34,3 +27,4 @@ let enemySetting = {
     chaseSpeed: 1.2,
     sight: 140
 };
+

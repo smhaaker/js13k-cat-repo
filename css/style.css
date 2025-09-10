@@ -76,7 +76,7 @@ button:active {
   z-index: 1000;
 }
 
-#game-over-content {
+#mcontent {
   background: #111;
   padding: 20px 40px;
   border: 2px solid #444;
@@ -84,7 +84,7 @@ button:active {
   text-align: center;
 }
 
-#game-over-content h1 {
+#mcontent h1 {
   margin: 0 0 15px;
   font-size: 24px;
 }

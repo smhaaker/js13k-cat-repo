@@ -5,6 +5,7 @@ const archiver = require('archiver');
 
 if (!fs.existsSync('dist')) fs.mkdirSync('dist', { recursive: true });
 if (!fs.existsSync('dist/css')) fs.mkdirSync('dist/css', { recursive: true });
+if (!fs.existsSync('archive')) fs.mkdirSync('archive', { recursive: true });
 
 const jsFiles = [
   'js/sound.js','js/sprites.js','js/settings.js',
@@ -46,7 +47,7 @@ let concatenated = jsFiles.map(f => {
                .trim();
   fs.writeFileSync('dist/index.html', html);
 
-  const output = fs.createWriteStream('game.zip');
+  const output = fs.createWriteStream('archive/game.zip');
   const archive = archiver('zip', { zlib: { level: 9 } });
 
   output.on('close', () => console.log(`📦 Zip created: game.zip (${archive.pointer()} bytes)`));

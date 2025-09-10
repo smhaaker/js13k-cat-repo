@@ -1,3 +1,8 @@
+const spriteW = catFrames[0][0].length * scale,
+      spriteH = catFrames[0].length * scale;
+const fishW = fish[0].length * scale,
+      fishH = fish.length * scale;
+
 function drawSprite(x, y, sprite, { scale = 3, flip = false, colors = {} } = {}) {
   for (let row = 0; row < sprite.length; row++) {
     for (let col = 0; col < sprite[row].length; col++) {
@@ -21,13 +26,13 @@ function drawFish() {
 }
 
 function drawOldLady(x, y, sprite, { scale = 3, flip = false } = {}) {
-  const colors = {
-    1: "rgb(0, 0, 0)", 2: "rgb(226, 164, 122)", 3: "rgb(101, 45, 45)",
-    4: "rgb(37, 26, 40)", 5: "rgb(251, 242, 54)", 6: "rgb(255, 255, 255)",
-    7: "rgb(120, 114, 102)", 8: "rgb(51, 37, 59)", 9: "rgb(75, 42, 30)",
-    10: "rgb(52, 29, 22)", 11: "rgb(147, 65, 60)", 12: "rgb(208, 138, 96)",
-    13: "rgb(68, 64, 63)"
-  };
+const colors={
+  1:"rgb(0,0,0)",2:"rgb(226,164,122)",3:"rgb(101,45,45)",
+  4:"rgb(37,26,40)",5:"rgb(251,242,54)",6:"rgb(255,255,255)",
+  7:"rgb(120,114,102)",8:"rgb(51,37,59)",9:"rgb(75,42,30)",
+  10:"rgb(52,29,22)",11:"rgb(147,65,60)",12:"rgb(208,138,96)",
+  13:"rgb(68,64,63)"
+};
   for (let row = 0; row < sprite.length; row++) {
     for (let col = 0; col < sprite[row].length; col++) {
       const cell = sprite[row][flip ? sprite[row].length - 1 - col : col];
