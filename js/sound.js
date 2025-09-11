@@ -5,7 +5,7 @@ let audioEnabled = true;
 let currentSongSpeed = 0.4;
 let songPlaying = false;
 let activeNotes = [];
-let currentSongMode = null;
+// let currentSongMode = null;
 
 let lastFootstepTime = 0;
 const footstepInterval = 250;
@@ -92,16 +92,6 @@ function startFootsteps() {
 
   osc.start(audioCtx.currentTime);
   osc.stop(audioCtx.currentTime + 0.08);
-}
-
-function updateSongMode(mode) {
-  if (currentSongMode === mode) return;
-  currentSongMode = mode;
-
-  stopSong();
-  
-  if (mode === "normal") playSongLoop(melody, 0.9);
-  else if (mode === "fish") playSongLoop(melody, 0.2);
 }
 
 const melody = [

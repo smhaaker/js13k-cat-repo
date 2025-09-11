@@ -13,8 +13,6 @@ function resetFish() {
 
   fishObj.x = Math.floor((W - fishW) / 2);
   fishObj.y = Math.floor((H - fishH) / 2);
-  // fishObj.x = 50 + Math.random() * (W - 100);
-  // fishObj.y = 50 + Math.random() * (H - 100);
 }
 
 
@@ -210,8 +208,7 @@ function update() {
                       r2.y + r2.h < r1.y);
     if (overlap) {
       fishObj.collected = true;
-      // playSong(melody);
-      // playSongLoop(melody, 0.2);
+      playSongLoop(melody, 0.2);
       meowSound();
       pickExitRoom();
       getOutTimer = 60;
@@ -219,17 +216,9 @@ function update() {
   }
 
   if (checkWin()) {
-    // stopSong();
     showGameOver("Next level!", true, false);
     nextLevelBtn.disabled = false;
-
     stopSong();
-      } else if (enemyCaughtPlayer()) {
-        stopSong();
-      } else if (!fishObj.collected) {
-        stopSong();
-      } else if (fishObj.collected) {
-          updateSongMode("fish");
     }
 }
 
