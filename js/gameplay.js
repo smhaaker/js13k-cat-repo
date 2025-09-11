@@ -180,7 +180,7 @@ function update() {
       frameTimer = 0;
       currentFrame = currentFrame === 1 ? 2 : 1;
     }
-    playBeep(440 + Math.random() * 100, 0.05);
+    startFootsteps();
   } else {
     currentFrame = 0;
   }
@@ -192,6 +192,7 @@ function update() {
     playBeep(900, 0.08, "square");
 
     showGameOver("You were caught!", false, true);
+    stopSong();
     restartBtn.disabled = false;
 
     gamePaused = true;
@@ -209,6 +210,8 @@ function update() {
                       r2.y + r2.h < r1.y);
     if (overlap) {
       fishObj.collected = true;
+      // playSong(melody);
+      // playSongLoop(melody, 0.2);
       meowSound();
       pickExitRoom();
       getOutTimer = 60;
@@ -216,9 +219,18 @@ function update() {
   }
 
   if (checkWin()) {
+    // stopSong();
     showGameOver("Next level!", true, false);
     nextLevelBtn.disabled = false;
-  }
+
+    stopSong();
+      } else if (enemyCaughtPlayer()) {
+        stopSong();
+      } else if (!fishObj.collected) {
+        stopSong();
+      } else if (fishObj.collected) {
+          updateSongMode("fish");
+    }
 }
 
 function startNextLevel({ sameLevel = false } = {}) {
